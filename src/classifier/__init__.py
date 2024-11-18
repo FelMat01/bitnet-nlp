@@ -1,0 +1,3 @@
+from src.classifier.classifier import Classifier
+from src.classifier.naive_bayes_classifier import NaiveBayesClassifier
+from src.classifier.bert_classifier import BertClassifier
