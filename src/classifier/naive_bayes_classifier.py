@@ -41,14 +41,14 @@ class NaiveBayesClassifier(Classifier):
         """
         return self.pipeline.predict([text])[0]
 
-    def export(self, output_dir: Path) -> None:
+    def export(self, dir: Path) -> None:
         """
         Exports the trained model to a file.
         Args:
-            output_dir: The directory where the model will be saved.
+            dir: The directory where the model will be saved.
         """
-        output_dir.mkdir(parents=True, exist_ok=True)
-        model_path = output_dir / "naive_bayes_model.pkl"
+        dir.mkdir(parents=True, exist_ok=True)
+        model_path = dir / "naive_bayes_model.pkl"
         joblib.dump(self.pipeline, model_path)
 
     def load(self, load_path: Path) -> None:

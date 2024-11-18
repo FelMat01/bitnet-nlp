@@ -1,17 +1,7 @@
-from pathlib import Path
 import json
 
-from dotenv import load_dotenv
-
 from src import *
-
-load_dotenv()
-
-# Set variables
-
-# Generate Synthetic Data
-generate_synthetic_data = True
-input_synthetic_data_path = Path("./results/synthetic_dataset.json") # Only used if generate_synthetic_data is False
+from config import *
 
 # LLM
 model_repo = "mistralai/Mixtral-8x7B-Instruct-v0.1"
@@ -23,9 +13,6 @@ classifier_type = "NB"
 context = "Classify jobs descriptions, a job description is a paragraph talking about a job"
 labels = ["ML", "Testing", "Devops"]
 
-# Output
-output_dir = Path("./results")
-
 # Example
 example = "Lets work with llms, with data analysis, and with predictive models"
 
@@ -35,7 +22,7 @@ def main():
     print(f"- Context: {context}")
     print(f"- Classes: {labels}\n")
     
-    if generate_synthetic_data:
+    if SYNTHETIC_DATASET_GENERATE:
         print("Generating Synthetic Data...")
         print(f"- Model repo: {model_repo}")
         print(f"- Samples per Class: {samples_per_class}")
@@ -49,16 +36,16 @@ def main():
                                     number_of_words=number_of_words)
         
         # Store the output
-        print(f"Storing data in {input_synthetic_data_path}\n")
-        output_dir.mkdir(parents=True, exist_ok=True)
-        with open(input_synthetic_data_path, "w") as f:
+        print(f"Storing data in {SYNTHETIC_DATASET_PATH}\n")
+        SYNTHETIC_DATASET_FOLDER.mkdir(parents=True, exist_ok=True)
+        with open(SYNTHETIC_DATASET_PATH, "w") as f:
             json.dump(synthetic_data, f, indent=4) 
     else:
         # Load the data
-        print(f"Loading data from {input_synthetic_data_path}\n")
-        if not input_synthetic_data_path.exists():
+        print(f"Loading data from {SYNTHETIC_DATASET_PATH}\n")
+        if not SYNTHETIC_DATASET_PATH.exists():
             raise FileNotFoundError
-        with open(input_synthetic_data_path, "r") as f:
+        with open(SYNTHETIC_DATASET_PATH, "r") as f:
             synthetic_data = json.load(f)
         
     
@@ -71,13 +58,13 @@ def main():
     else:
         raise ValueError(f"Unknown classifier: {classifier_type}")
 
-    print("Classifier Train: Starting...")
     # Train the Classifier
+    print("Classifier Train: Starting...")
     classifier.train(data=synthetic_data)
     print("Classifier Train: OK \n")
 
     # Save the model
-    classifier.export(output_dir = output_dir)
+    classifier.export(dir=MODELS_FOLDER)
     
     # Make a prediction with the example
     prediction = classifier.predict(example)

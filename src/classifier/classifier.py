@@ -7,7 +7,7 @@ class Classifier:
         pass
     def train(self) -> None:
         pass
-    def export(self, output_dir: Path) -> None:
+    def export(self, dir: Path) -> None:
         pass
     def load(self, load_path: Path) -> None:
         pass
