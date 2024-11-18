@@ -1,20 +1,10 @@
 # Auto Classifier
 
+## Introduction
 
----
+This project aims to automate the generation of simple classification models by generating synthetic data given minimal user input and then training a classification model.
 
-This project is based in:
-- [this repository](https://github.com/kyegomez/bitnet?tab=readme-ov-file).
-
-- [this paper](https://arxiv.org/abs/2310.11453)
-
-- [this huggingface article](https://huggingface.co/blog/1_58_llm_extreme_quantization)
-
----
-
-# Todo
-- [x] Create the repo
-- [ ] Choose a model
-- [ ] Make a succesful inference
-- [ ] Make a succesful inference with 1B quantized model
-- [ ] Write evaluation scripts
+## How to use
+- Install required libraries found in requirements.txt
+- Load you huggingface api token to the variable HUGGINGFACEHUB_API_TOKEN (.env example is found in docs folder)
+- Run app.py
