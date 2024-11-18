@@ -15,7 +15,7 @@ class NaiveBayesClassifier(Classifier):
             ('classifier', MultinomialNB())    # Naive Bayes classifier
         ])
 
-    def train(self, data: dict[str, list[str]]):
+    def train(self, data: dict[str, list[str]]) -> None:
         """
         Trains the classifier with labeled data.
         Args:
@@ -41,7 +41,7 @@ class NaiveBayesClassifier(Classifier):
         """
         return self.pipeline.predict([text])[0]
 
-    def export(self, output_dir: Path):
+    def export(self, output_dir: Path) -> None:
         """
         Exports the trained model to a file.
         Args:
@@ -51,7 +51,7 @@ class NaiveBayesClassifier(Classifier):
         model_path = output_dir / "naive_bayes_model.pkl"
         joblib.dump(self.pipeline, model_path)
 
-    def load(self, load_path: Path):
+    def load(self, load_path: Path) -> None:
         """
         Loads a trained model from a file.
         Args:

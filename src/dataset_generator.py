@@ -24,7 +24,7 @@ class DatasetGenerator:
     def __init__(self, model_repo:str) -> None:
         self.llm = HuggingFaceEndpoint(repo_id=model_repo, max_new_tokens=1000, repetition_penalty=1.03, timeout = 300)
          
-    def generate(self, context:str, classes:list[str], samples_per_class : int = 5, number_of_words : int = 50) -> dict[str,str]:
+    def generate(self, context:str, classes:list[str], samples_per_class:int = 5, number_of_words:int = 50) -> dict[str,str]:
         responses = defaultdict(list)
             
         for specific_class in classes:
