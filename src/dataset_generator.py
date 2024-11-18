@@ -33,7 +33,7 @@ class DatasetGenerator:
                 prompt = PROMPT_TEMPLATE.format(context=context, specific_class=specific_class, number_of_words=number_of_words, examples=examples)
                 response = self.llm.invoke(prompt)
 
-                print(response)
-
                 responses[specific_class].append(response)
                 examples += f"{response}\n\n"
+        
+        return responses

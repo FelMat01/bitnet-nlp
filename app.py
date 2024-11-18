@@ -1,13 +1,11 @@
-from dotenv import load_dotenv
-from src import *
-from src.classifier import Classifier, NaiveBayesClassifier, BertClassifier
 from pathlib import Path
 import json
-import logging
+
+from dotenv import load_dotenv
+
+from src import *
 
 load_dotenv()
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 # Set variables
 
@@ -21,44 +19,43 @@ samples_per_class = 5
 number_of_words = 50
 
 # Classifier
-labels =["ML", "Testing", "Devops"]
 classifier_type = "NB"
 context = "Classify jobs descriptions, a job description is a paragraph talking about a job"
+labels = ["ML", "Testing", "Devops"]
 
 # Output
 output_dir = Path("./results")
 
 # Example
-example = "Lets work with llms, with data analysis, and with neural networks"
+example = "Lets work with llms, with data analysis, and with predictive models"
 
 def main():
-    logging.info("Starting Auto Classifier!\n")
+    print("Starting Auto Classifier!")
     
-    logging.info(f"Classes: {labels}")
+    print(f"- Context: {context}")
+    print(f"- Classes: {labels}\n")
     
     if generate_synthetic_data:
-        logging.info("Generating Synthetic Data...")
-        logging.info(f"- Model repo: {model_repo}")
-        logging.info(f"- Samples per Class: {samples_per_class}")
-        logging.info(f"- Number of Words: {number_of_words}\n")
+        print("Generating Synthetic Data...")
+        print(f"- Model repo: {model_repo}")
+        print(f"- Samples per Class: {samples_per_class}")
+        print(f"- Number of Words: {number_of_words}\n")
         
         # Generate Synthetic Data
         generator = DatasetGenerator(model_repo=model_repo)
-
         synthetic_data = generator.generate(context=context,
                                     classes=labels,
                                     samples_per_class = samples_per_class,
                                     number_of_words=number_of_words)
         
         # Store the output
-        # Create dir if necessary
+        print(f"Storing data in {input_synthetic_data_path}\n")
         output_dir.mkdir(parents=True, exist_ok=True)
-        # Writing to a JSON file
-        with open(output_dir / "synthetic_dataset.json", "w") as f:
+        with open(input_synthetic_data_path, "w") as f:
             json.dump(synthetic_data, f, indent=4) 
     else:
         # Load the data
-        logging.info(f"Loading data from {input_synthetic_data_path}\n")
+        print(f"Loading data from {input_synthetic_data_path}\n")
         if not input_synthetic_data_path.exists():
             raise FileNotFoundError
         with open(input_synthetic_data_path, "r") as f:
@@ -66,15 +63,18 @@ def main():
         
     
     # Create a Classifier
-    logging.info(f"\nUsing Classifier: {classifier_type}...\n")
+    print(f"Using classifier: {classifier_type}")
     if classifier_type == "NB":
         classifier = NaiveBayesClassifier(labels=labels)
     elif classifier_type == "bert":
         classifier = BertClassifier(labels=labels)
+    else:
+        raise ValueError(f"Unknown classifier: {classifier_type}")
 
-    logging.info("Starting train:... \n")
+    print("Classifier Train: Starting...")
     # Train the Classifier
     classifier.train(data=synthetic_data)
+    print("Classifier Train: OK \n")
 
     # Save the model
     classifier.export(output_dir = output_dir)
@@ -83,13 +83,13 @@ def main():
     prediction = classifier.predict(example)
     
 
-    logging.info("\n=================== EXAMPLE OUTPUT ===================\n")
+    print("\n=================== EXAMPLE OUTPUT ===================\n")
 
     
-    logging.info(f"Classifier Type: {classifier_type}")
-    logging.info(f"Classes: {labels}")
-    logging.info(f"Example:'{example}'")
-    logging.info("Result: ", prediction)
+    print(f"Classifier Type: {classifier_type}")
+    print(f"Classes: {labels}")
+    print(f"Example:'{example}'")
+    print("Result: ", prediction)
     
 if __name__ == "__main__":
     main()
