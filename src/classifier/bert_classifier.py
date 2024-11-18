@@ -2,9 +2,9 @@ from pathlib import Path
 from src.classifier import Classifier
 
 class BertClassifier(Classifier):
-    def __init__(self, labels : list[str]):
+    def __init__(self, labels : list[str]) -> None:
         pass
-    def predict(self, str) -> str:
+    def predict(self, str : str) -> str:
         pass
     def train(self):
         pass

@@ -1,13 +1,14 @@
-from src.classifier import Classifier
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.pipeline import Pipeline
-from src.classifier import Classifier
 import joblib
 from pathlib import Path
 
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.pipeline import Pipeline
+
+from src.classifier import Classifier
+
 class NaiveBayesClassifier(Classifier):
-    def __init__(self, labels: list[str]):
+    def __init__(self, labels: list[str]) -> None:
         self.labels = labels
         self.pipeline = Pipeline([
             ('vectorizer', CountVectorizer()),  # Converts text to a bag-of-words representation
