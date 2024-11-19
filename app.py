@@ -1,7 +1,7 @@
 import json
 
-from src import *
-from config import *
+from src import DatasetGenerator, NaiveBayesClassifier, BertClassifier
+from config import SYNTHETIC_DATASET_GENERATE, SYNTHETIC_DATASET_PATH, SYNTHETIC_DATASET_FOLDER, MODELS_FOLDER
 
 # LLM
 model_repo = "mistralai/Mixtral-8x7B-Instruct-v0.1"
@@ -9,7 +9,7 @@ samples_per_class = 5
 number_of_words = 50
 
 # Classifier
-classifier_type = "NB"
+classifier_type = "bert"
 context = "Classify jobs descriptions, a job description is a paragraph talking about a job"
 labels = ["ML", "Testing", "Devops"]
 
