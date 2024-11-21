@@ -20,7 +20,7 @@ class BertClassifier(Classifier):
         id2label = {i: label for i, label in enumerate(labels)}
         label2id = {label: i for i, label in enumerate(labels)}
         config = AutoConfig.from_pretrained(
-            model_name, num_labels=len(labels), id2label=id2label, label2id=label2id
+            model_name, num_labels=len(labels), id2label=id2label, label2id=label2id, hidden_dropout_prob=0
         )
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.model = AutoModelForSequenceClassification.from_pretrained(
@@ -35,11 +35,12 @@ class BertClassifier(Classifier):
             # "per_device_train_batch_size": 1,  # Reduce if CUDA memory error persists
             "per_device_eval_batch_size": 1,
             # "gradient_accumulation_steps": 4,  # Accumulate gradients to simulate larger batch size
-            "num_train_epochs": 3,
-            "learning_rate": 5e-3,
+            "num_train_epochs": 5,
+            "learning_rate": 5e-5,
+            "lr_scheduler_type": "cosine",
             # "fp16": True,  # Use mixed precision training to save memory
             "logging_dir": "./logs",
-            "logging_steps": 100,
+            "logging_steps": 10,
             "save_steps": 500,
             "save_total_limit": 2,  # Keep only the last
         }
