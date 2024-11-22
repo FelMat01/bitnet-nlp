@@ -1,6 +1,6 @@
 import json
 import pandas as pd
-from src import DatasetGenerator, NaiveBayesClassifier, BertClassifier
+from src import NaiveBayesClassifier, BertClassifier, HFDatasetGenerator, OpenAIDatasetGenerator
 from datasets import Dataset
 from config import SYNTHETIC_DATASET_GENERATE, SYNTHETIC_DATASET_PATH, SYNTHETIC_DATASET_FOLDER, MODELS_FOLDER
 
@@ -20,6 +20,8 @@ labels = ["ML", "Testing", "Devops"]
 # Example
 example = "Lets work with llms, with data analysis, and with predictive models"
 
+dataset_generator_type = "HF"#"OpenAi"  "HF"
+
 def main():
     print("Starting Auto Classifier!")
     
@@ -32,8 +34,14 @@ def main():
         print(f"- Samples per Class: {samples_per_class}")
         print(f"- Number of Words: {number_of_words}\n")
         
+        # Choose generator
+        if dataset_generator_type == "HF":
+            dataset_generator = HFDatasetGenerator
+        elif dataset_generator_type == "OpenAi":
+            dataset_generator = OpenAIDatasetGenerator
+            
         # Generate Synthetic Data
-        generator = DatasetGenerator(model_repo=model_repo)
+        generator = dataset_generator(model_repo=model_repo)
         synthetic_data = generator.generate(context=context,
                                     classes=labels,
                                     samples_per_class = samples_per_class,

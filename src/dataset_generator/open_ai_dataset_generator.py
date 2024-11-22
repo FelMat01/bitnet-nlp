@@ -1,3 +1,4 @@
+from src.dataset_generator import DatasetGenerator
 from collections import defaultdict
 from tqdm import tqdm
 from openai import OpenAI
@@ -60,7 +61,7 @@ def parse_to_list(input_string):
         print("Error parsing the input string:", e)
         return []
     
-class OpenAIDatasetGenerator:
+class OpenAIDatasetGenerator(DatasetGenerator):
     def __init__(self, model_repo:str) -> None:
         self.client = OpenAI()
          

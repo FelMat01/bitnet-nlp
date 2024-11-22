@@ -1,10 +1,11 @@
+from config import SYNTHETIC_DATASET_GENERATOR_ATTRIBUTES, SYNTHETIC_DATASET_GENERATOR_PROMPT
+from src.dataset_generator import DatasetGenerator
 from langchain_huggingface import HuggingFaceEndpoint
 from collections import defaultdict
 from tqdm import tqdm
-from config import SYNTHETIC_DATASET_GENERATOR_ATTRIBUTES, SYNTHETIC_DATASET_GENERATOR_PROMPT
 from random import choice, sample
 
-class DatasetGenerator:
+class HFDatasetGenerator(DatasetGenerator):
     def __init__(self, model_repo:str) -> None:
         self.llm = HuggingFaceEndpoint(repo_id=model_repo, max_new_tokens=1000, repetition_penalty=1.03, timeout = 300)
          

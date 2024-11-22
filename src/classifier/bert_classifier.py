@@ -1,4 +1,5 @@
 from pathlib import Path
+from src.classifier import Classifier
 
 from transformers import (
     AutoConfig,
