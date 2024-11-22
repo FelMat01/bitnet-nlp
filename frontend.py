@@ -1,7 +1,7 @@
 import streamlit as st
 import pdb
 import pandas as pd     
-
+from streamlit_tags import st_tags
 
 user_input = st.text_area("Ingresa su caso de uso:", height=200)
 
@@ -13,27 +13,7 @@ st.write("Texto ingresado:", user_input)
 if "text_list" not in st.session_state:
     st.session_state["text_list"] = []
 
-# Cuadro de entrada de texto y botón para agregar texto a la lista
-new_text = st.text_input("Ingresa un nuevo elemento:")
-if st.button("Agregar a la lista"):
-    if new_text:
-        st.session_state["text_list"].append(new_text)
-        st.success(f"Elemento '{new_text}' agregado a la lista")
-    else:
-        st.warning("El cuadro de texto está vacío, ingresa un texto")
-
-# Mostrar la lista con botones de eliminación para cada elemento
-st.write("### Lista de elementos:")
-for i, item in enumerate(st.session_state["text_list"]):
-    col1, col2 = st.columns([0.85, 0.15])  # Dividir en columnas para el botón de eliminación
-    with col1:
-        st.write(f"- {item}")
-    with col2:
-        # Eliminar el elemento cuando el botón se presiona
-        if st.button("Eliminar", key=f"delete_{i}"):
-            st.session_state["text_list"].pop(i)
-            st.rerun()  # Forzar la recarga de la app después de eliminar un elemento
-            break  # Salir del bucle para evitar errores de índice
+st.session_state["text_list"] = st_tags(suggestions=["triste","alegre", "enojado"], label= "### Ingrese las clases (presione enter para agregar)", maxtags=10)
 
 
 
