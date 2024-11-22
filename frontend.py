@@ -2,21 +2,37 @@ import streamlit as st
 import pdb
 import pandas as pd     
 from streamlit_tags import st_tags
-
-user_input = st.text_area("Ingresa su caso de uso:", height=200)
-
-# Mostrar el texto ingresado
-st.write("Texto ingresado:", user_input)
-
-
-# Inicializar la lista en la sesión si no existe
+#st.set_page_config(layout="wide")
+if "data_generator_mode" not in st.session_state:
+        st.session_state["data_generator_mode"] = "Generar"
 if "text_list" not in st.session_state:
     st.session_state["text_list"] = []
+if "samples_per_class" not in st.session_state:
+    st.session_state["samples_per_class"] = 20
+if "number_of_words" not in st.session_state:
+    st.session_state["number_of_words"] = 50
+st.image("misc/banner.png")
+_, col2, _ = st.columns(3)
+with col2:
+    st.session_state.data_generator_mode = st.pills(label = "", selection_mode="single", options=["Generar", "Subir Datos"], default="Generar")
 
-st.session_state["text_list"] = st_tags(suggestions=["triste","alegre", "enojado"], label= "### Ingrese las clases (presione enter para agregar)", maxtags=10)
+st.divider()
+if st.session_state.data_generator_mode == "Generar":
+    # Inicializar la lista en la sesión si no existe
+    st.write("## Generador de Dataset")
+    st.session_state["text_list"] = st_tags(suggestions=["triste","alegre", "enojado"], label= "#### Ingrese las clases (presione enter para agregar)", maxtags=10)  
+    st.write("#### Ingrese un contexto para el generador.")
+    user_input = st.text_area("",height=200)
+    st.session_state.samples_per_class = st.slider("Samples per Class", min_value=10, max_value=100, step = 10, value = st.session_state.samples_per_class)
+    st.session_state.number_of_words = st.slider("Number of Words", max_value = 100, min_value = 10, step=5, value=st.session_state.number_of_words)
 
+elif st.session_state.data_generator_mode == "Subir Datos":
+    st.write("## Subir Dataset")
+    st.write("#### Suba un archivo .json con el dataset.")
+    st.file_uploader(label="")
+    
 
-
+st.divider()
 modelo_resultado = "Modelo generado con los elementos: " + ", ".join(st.session_state["text_list"])
 
 # Botón para generar el modelo usando la lista actual
