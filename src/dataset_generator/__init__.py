@@ -1,3 +1,3 @@
 from src.dataset_generator.dataset_generator import DatasetGenerator
-from src.dataset_generator.hf_dataset_generator import HFDatasetGenerator
-from src.dataset_generator.open_ai_dataset_generator import OpenAIDatasetGenerator
+from src.dataset_generator.hf_dataset_generator import HFDatasetGenerator, PROMPT_TEMPLATE as HF_PROMPT_TEMPLATE
+from src.dataset_generator.open_ai_dataset_generator import OpenAIDatasetGenerator, PROMPT_TEMPLATE as OPENAI_PROMPT_TEMPLATE

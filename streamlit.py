@@ -1,6 +1,6 @@
 import streamlit as st
 import json
-from src import NaiveBayesClassifier, BertClassifier, HFDatasetGenerator, OpenAIDatasetGenerator
+from src import NaiveBayesClassifier, BertClassifier, HFDatasetGenerator, OpenAIDatasetGenerator, HF_PROMPT_TEMPLATE, OPENAI_PROMPT_TEMPLATE
 import pandas as pd     
 from streamlit_tags import st_tags
 from collections import defaultdict
@@ -15,6 +15,8 @@ if "data_generator_mode" not in st.session_state:
     st.session_state["data_generator_mode"] = "Generar"
 if "data_generator_model_type" not in st.session_state:
     st.session_state["data_generator_model_type"] = "OpenAI"
+if "data_generator_model_repo" not in st.session_state:
+    st.session_state["data_generator_model_repo"] = "mistralai/Mixtral-8x7B-Instruct-v0.1"
 if "context" not in st.session_state:
     st.session_state["context"] = ""
 if "text_classes" not in st.session_state:
@@ -41,8 +43,17 @@ if st.session_state.data_generator_mode == "Generar":
     # Inicializar la lista en la sesión si no existe
     st.write("## Generador de Dataset")
     st.session_state.data_generator_model_type = st.pills(label="Elija Modelo", selection_mode="single", options=["OpenAI", "Hugging Face"], default=st.session_state.data_generator_model_type)
-
+    if st.session_state.data_generator_model_type == "Hugging Face":
+        st.write("Ingrese repositorio de huggingface")
+        st.session_state.data_generator_model_repo = st.text_area("Repositorio de Huggingface", value=st.session_state.data_generator_model_repo,height=68)
     
+    if (st.session_state.data_generator_model_type) == "Hugging Face":
+        st.session_state.data_generator_prompt = HF_PROMPT_TEMPLATE
+    else:
+        st.session_state.data_generator_prompt = OPENAI_PROMPT_TEMPLATE
+
+    st.session_state.data_generator_prompt = st.text_area("Prompt", value=st.session_state.data_generator_prompt,height=400)
+
     st.session_state.text_classes = st_tags( label= "#### Ingrese las clases (presione enter para agregar)", maxtags=10)
     st.write("#### Ingrese un contexto para el generador.")
     st.session_state.context = st.text_area(" ",height=200)

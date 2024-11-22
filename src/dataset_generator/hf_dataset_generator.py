@@ -1,9 +1,42 @@
-from config import SYNTHETIC_DATASET_GENERATOR_ATTRIBUTES, SYNTHETIC_DATASET_GENERATOR_PROMPT
+from config import SYNTHETIC_DATASET_GENERATOR_ATTRIBUTES
 from src.dataset_generator import DatasetGenerator
 from langchain_huggingface import HuggingFaceEndpoint
 from collections import defaultdict
 from tqdm import tqdm
 from random import choice, sample
+
+PROMPT_TEMPLATE="""
+<|system|>
+Generate a clear, unique, and realistic paragraph for the specified class. Do not explicitly mention the class name, any other classes, or unrelated details.
+The text must distinctly align with the target class without any ambiguity or overlap with other classes.
+
+### Constraints:
+- Length: Maximum {number_of_words} words.
+- Style: Write confidently and in a {attribute} manner, as if you are knowledgeable in the subject.
+- Originality: Avoid rephrasing or mimicking examples provided. Ensure the tone and content differ from the examples.
+
+### Context:
+{context}
+
+### Available Classes:
+{classes}
+
+### Target Class:
+{specific_class}
+
+### Examples:
+{examples}
+
+### Instructions:
+1. Focus solely on the target class, ensuring clarity and alignment with the context.
+2. Use your assigned style ({attribute}) while maintaining professionalism and coherence.
+3. Avoid introducing ambiguity that could link the paragraph to other classes.
+4. Only output the generated paragraph without additional indicators or comments.
+
+</s>
+<|assistant|>
+"""
+
 
 class HFDatasetGenerator(DatasetGenerator):
     def __init__(self, model_repo:str) -> None:
@@ -18,7 +51,7 @@ class HFDatasetGenerator(DatasetGenerator):
 
                 examples = sample(responses[specific_class], min(5,len(responses[specific_class])))
 
-                prompt = SYNTHETIC_DATASET_GENERATOR_PROMPT.format(
+                prompt = PROMPT_TEMPLATE.format(
                     attribute=attribute,
                     context=context,
                     classes=classes,
