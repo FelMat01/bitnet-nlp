@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Synthetic Data
-SYNTHETIC_DATASET_GENERATE = True
+SYNTHETIC_DATASET_GENERATE = False
 SYNTHETIC_DATASET_FOLDER = Path("./data")
 SYNTHETIC_DATASET_PATH = Path(f"{SYNTHETIC_DATASET_FOLDER}/synthetic_dataset.json")
 SYNTHETIC_DATASET_GENERATOR_ATTRIBUTES = [
@@ -15,26 +15,31 @@ SYNTHETIC_DATASET_GENERATOR_ATTRIBUTES = [
 ]
 SYNTHETIC_DATASET_GENERATOR_PROMPT="""
 <|system|>
-Generate a paragraph for the class WITHOUT NAMING THE CLASS or other classes based on the context.
-The generated text must not be ambiguous with toher classes.
+Generate a clear, unique, and realistic paragraph for the specified class. Do not explicitly mention the class name, any other classes, or unrelated details.
+The text must distinctly align with the target class without any ambiguity or overlap with other classes.
 
-Write a maximum of {number_of_words} words.
-Write it as if you where knowledgable and {attribute}.
-Try to be different from examples (if present).
+### Constraints:
+- Length: Maximum {number_of_words} words.
+- Style: Write confidently and in a {attribute} manner, as if you are knowledgeable in the subject.
+- Originality: Avoid rephrasing or mimicking examples provided. Ensure the tone and content differ from the examples.
 
-Context:
+### Context:
 {context}
 
-All Classes:
+### Available Classes:
 {classes}
 
-Current Class: 
+### Target Class:
 {specific_class}
 
-Examples (personalities in examples are not equal to your own personality):
+### Examples:
 {examples}
 
-Note: Only respond with the requested text without any normal conversation indicators.
+### Instructions:
+1. Focus solely on the target class, ensuring clarity and alignment with the context.
+2. Use your assigned style ({attribute}) while maintaining professionalism and coherence.
+3. Avoid introducing ambiguity that could link the paragraph to other classes.
+4. Only output the generated paragraph without additional indicators or comments.
 
 </s>
 <|assistant|>

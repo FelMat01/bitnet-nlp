@@ -27,6 +27,6 @@ class DatasetGenerator:
                 
                 response = self.llm.invoke(prompt)
 
-                responses[specific_class].append(response)
+                responses[specific_class].append(response.strip())
         
         return responses

@@ -15,7 +15,7 @@ class NaiveBayesClassifier(Classifier):
             ('classifier', MultinomialNB())    # Naive Bayes classifier
         ])
 
-    def train(self, data: dict[str, list[str]]) -> None:
+    def train(self, data: dict[str, list[str]], dataset) -> None:
         """
         Trains the classifier with labeled data.
         Args:
