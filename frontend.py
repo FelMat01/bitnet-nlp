@@ -1,91 +1,90 @@
 import streamlit as st
-import pdb
+import json
+from src import NaiveBayesClassifier, BertClassifier, HFDatasetGenerator, OpenAIDatasetGenerator
 import pandas as pd     
 from streamlit_tags import st_tags
+from collections import defaultdict
+import json
+
+from config import SYNTHETIC_DATASET_GENERATE, SYNTHETIC_DATASET_PATH, SYNTHETIC_DATASET_FOLDER, MODELS_FOLDER
 #st.set_page_config(layout="wide")
 if "data_generator_mode" not in st.session_state:
-        st.session_state["data_generator_mode"] = "Generar"
-if "text_list" not in st.session_state:
-    st.session_state["text_list"] = []
+    st.session_state["data_generator_mode"] = "Generar"
+if "context" not in st.session_state:
+    st.session_state["context"] = ""
+if "text_classes" not in st.session_state:
+    st.session_state["text_classes"] = ["triste","alegre", "enojado"]
 if "samples_per_class" not in st.session_state:
     st.session_state["samples_per_class"] = 20
 if "number_of_words" not in st.session_state:
     st.session_state["number_of_words"] = 50
+if "dataset_dict" not in st.session_state:
+    st.session_state["dataset_dict"] = defaultdict(list)
+if "model" not in st.session_state:
+    st.session_state["model"] = None
 st.image("misc/banner.png")
 _, col2, _ = st.columns(3)
 with col2:
-    st.session_state.data_generator_mode = st.pills(label = "", selection_mode="single", options=["Generar", "Subir Datos"], default="Generar")
+    st.session_state.data_generator_mode = st.pills(label = "Elija una opcion", selection_mode="single", options=["Generar", "Subir Datos"], default="Generar")
 
 st.divider()
 if st.session_state.data_generator_mode == "Generar":
     # Inicializar la lista en la sesión si no existe
     st.write("## Generador de Dataset")
-    st.session_state["text_list"] = st_tags(suggestions=["triste","alegre", "enojado"], label= "#### Ingrese las clases (presione enter para agregar)", maxtags=10)  
+    st.session_state.text_classes = st_tags( label= "#### Ingrese las clases (presione enter para agregar)", maxtags=10)  
     st.write("#### Ingrese un contexto para el generador.")
-    user_input = st.text_area("",height=200)
+    st.session_state.context = st.text_area("Contexto",height=200)
     st.session_state.samples_per_class = st.slider("Samples per Class", min_value=10, max_value=100, step = 10, value = st.session_state.samples_per_class)
     st.session_state.number_of_words = st.slider("Number of Words", max_value = 100, min_value = 10, step=5, value=st.session_state.number_of_words)
-
+    if st.button("Generar Dataset"):
+        generator = OpenAIDatasetGenerator("")
+        with st.spinner("Generando Dataset..."):
+            st.session_state.dataset_dict = generator.generate(context= st.session_state.context,
+                                        classes=st.session_state.text_classes,
+                                        samples_per_class = int(st.session_state.samples_per_class / 10),
+                                        number_of_words=st.session_state.number_of_words)
+        st.success("Dataset Generado!!")
+        
 elif st.session_state.data_generator_mode == "Subir Datos":
     st.write("## Subir Dataset")
     st.write("#### Suba un archivo .json con el dataset.")
-    st.file_uploader(label="")
-    
-
+    uploaded_file = st.file_uploader(label="Subir archivo", type=["json"])
+    if uploaded_file is not None:
+        try:
+            # Read the file as a string
+            file_content = uploaded_file.read().decode("utf-8")
+            
+            # Convert to dictionary
+            st.session_state.dataset_dict = json.loads(file_content)
+            st.session_state.text_classes = list(st.session_state.dataset_dict.keys())
+            st.success("Archivo Subido!")
+            
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
 st.divider()
-modelo_resultado = "Modelo generado con los elementos: " + ", ".join(st.session_state["text_list"])
+if st.session_state.dataset_dict.keys():
+    st.write(" ### Navigate the data:")
+    st.write(f"Classes: {st.session_state.text_classes}")
+    st.json(st.session_state.dataset_dict, expanded=False)
+    st.divider()
+    if st.button("Generar modelo"):
+        if st.session_state.dataset_dict.keys():
+            
+            with st.spinner("Training Model..."):
+                classifier = NaiveBayesClassifier(labels=st.session_state.text_classes)
+                classifier.train(data=st.session_state.dataset_dict, dataset=None)
+                classifier.export(dir=MODELS_FOLDER)
+                st.session_state.model = classifier
+            st.success("Model Trained.")
+        else:
+            st.warning("La lista está vacía. Agrega elementos antes de generar el modelo.")
+st.divider()
+if st.session_state.model is not None:
+    
+    texto_input = st.text_input("Introduce un texto para el modelo y presiona enter:")
+    result = ""
+    if texto_input:
+        result = st.session_state.model.predict(texto_input)
+    if result:
+        st.write(f"## Result: {result}")
 
-# Botón para generar el modelo usando la lista actual
-if st.button("Generar modelo"):
-    if st.session_state["text_list"]:
-        resultado_modelo = procesar_modelo(st.session_state["text_list"])
-        st.success(resultado_modelo)
-    else:
-        st.warning("La lista está vacía. Agrega elementos antes de generar el modelo.")
-
-
-
-# Estado inicial para controlar las etapas
-if "datos_generados" not in st.session_state:
-    st.session_state["datos_generados"] = False
-if "modelo_entrenado" not in st.session_state:
-    st.session_state["modelo_entrenado"] = False
-
-# Botón para generar datos
-st.title("Pipeline de Modelo")
-
-if not st.session_state["datos_generados"]:
-    if st.button("Generar Datos"):
-        st.session_state["datos_generados"] = True
-        st.success("Datos generados correctamente.")
-else:
-    st.info("Datos ya generados.")
-
-# Botón para entrenar el modelo (habilitado solo si los datos han sido generados)
-if st.session_state["datos_generados"] and not st.session_state["modelo_entrenado"]:
-    if st.button("Entrenar Modelo"):
-        st.session_state["modelo_entrenado"] = True
-        st.success("Modelo entrenado correctamente.")
-elif st.session_state["modelo_entrenado"]:
-    st.info("Modelo ya entrenado.")
-
-# Mostrar pestaña para usar el modelo entrenado solo si está entrenado
-if st.session_state["modelo_entrenado"]:
-    st.write("---")  # Línea divisoria
-    st.header("Uso del Modelo Entrenado")
-    tab1, tab2 = st.tabs(["Input de Modelo", "Acerca del Modelo"])
-
-    with tab1:
-        # Input de texto para el modelo
-        texto_input = st.text_input("Introduce un texto para el modelo:")
-        if st.button("Generar Output"):
-            if texto_input:
-                # Modelo ficticio que genera un output dummy
-                output_modelo = f"Este es un output ficticio basado en el input: '{texto_input}'"
-                st.success(output_modelo)
-            else:
-                st.warning("Por favor, introduce un texto antes de generar el output.")
-
-    with tab2:
-        st.write("Esta pestaña proporciona información adicional sobre el modelo.")
-        st.write("Por ejemplo, detalles de configuración, parámetros, etc.")
