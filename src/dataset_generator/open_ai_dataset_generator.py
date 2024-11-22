@@ -17,6 +17,7 @@ PROMPT_TEMPLATE =""" **Instructions:**
 
 **Examples:**
 {examples}
+
 If not examples were provided, you have to generate the seed examples, so try to be rich in differences and use of important words.
 
 **Tasks:**

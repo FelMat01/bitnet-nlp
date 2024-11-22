@@ -20,7 +20,7 @@ labels = ["ML", "Testing", "Devops"]
 # Example
 example = "Lets work with llms, with data analysis, and with predictive models"
 
-dataset_generator_type = "HF"#"OpenAi"  "HF"
+dataset_generator_type = "HF"#"OpenAI"  "HF"
 
 def main():
     print("Starting Auto Classifier!")
@@ -37,8 +37,10 @@ def main():
         # Choose generator
         if dataset_generator_type == "HF":
             dataset_generator = HFDatasetGenerator
-        elif dataset_generator_type == "OpenAi":
+        elif dataset_generator_type == "OpenAI":
             dataset_generator = OpenAIDatasetGenerator
+        else:
+            raise ValueError(f"Unknown Dataset Generator Type: {dataset_generator_type}")
             
         # Generate Synthetic Data
         generator = dataset_generator(model_repo=model_repo)

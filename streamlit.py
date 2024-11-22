@@ -6,10 +6,15 @@ from streamlit_tags import st_tags
 from collections import defaultdict
 import json
 
-from config import SYNTHETIC_DATASET_GENERATE, SYNTHETIC_DATASET_PATH, SYNTHETIC_DATASET_FOLDER, MODELS_FOLDER
+from config import MODELS_FOLDER
+
+
+### SETUP ###
 #st.set_page_config(layout="wide")
 if "data_generator_mode" not in st.session_state:
     st.session_state["data_generator_mode"] = "Generar"
+if "data_generator_model_type" not in st.session_state:
+    st.session_state["data_generator_model_type"] = "OpenAI"
 if "context" not in st.session_state:
     st.session_state["context"] = ""
 if "text_classes" not in st.session_state:
@@ -22,20 +27,27 @@ if "dataset_dict" not in st.session_state:
     st.session_state["dataset_dict"] = defaultdict(list)
 if "model" not in st.session_state:
     st.session_state["model"] = None
-st.image("misc/banner.png")
-_, col2, _ = st.columns(3)
-with col2:
-    st.session_state.data_generator_mode = st.pills(label = "Elija una opcion", selection_mode="single", options=["Generar", "Subir Datos"], default="Generar")
 
+### RENDER START ###
+st.image("misc/banner.png")
+
+# Select generation mode
+_, center, _ = st.columns(3)
+with center:
+    st.session_state.data_generator_mode = st.pills(label="Elija una opcion", selection_mode="single", options=["Generar", "Subir Datos"], default=st.session_state.data_generator_mode)
 st.divider()
+
 if st.session_state.data_generator_mode == "Generar":
     # Inicializar la lista en la sesión si no existe
     st.write("## Generador de Dataset")
-    st.session_state.text_classes = st_tags( label= "#### Ingrese las clases (presione enter para agregar)", maxtags=10)  
+    st.session_state.data_generator_model_type = st.pills(label="Elija Modelo", selection_mode="single", options=["OpenAI", "Hugging Face"], default=st.session_state.data_generator_model_type)
+
+    
+    st.session_state.text_classes = st_tags( label= "#### Ingrese las clases (presione enter para agregar)", maxtags=10)
     st.write("#### Ingrese un contexto para el generador.")
-    st.session_state.context = st.text_area("Contexto",height=200)
-    st.session_state.samples_per_class = st.slider("Samples per Class", min_value=10, max_value=100, step = 10, value = st.session_state.samples_per_class)
-    st.session_state.number_of_words = st.slider("Number of Words", max_value = 100, min_value = 10, step=5, value=st.session_state.number_of_words)
+    st.session_state.context = st.text_area(" ",height=200)
+    st.session_state.samples_per_class = st.slider("Samples per Class", min_value=10, max_value=100, step=10, value=st.session_state.samples_per_class)
+    st.session_state.number_of_words = st.slider("Number of Words", max_value=100, min_value=10, step=5, value=st.session_state.number_of_words)
     if st.button("Generar Dataset"):
         generator = OpenAIDatasetGenerator("")
         with st.spinner("Generando Dataset..."):
@@ -43,8 +55,7 @@ if st.session_state.data_generator_mode == "Generar":
                                         classes=st.session_state.text_classes,
                                         samples_per_class = int(st.session_state.samples_per_class / 10),
                                         number_of_words=st.session_state.number_of_words)
-        st.success("Dataset Generado!!")
-        
+        st.success("Dataset Generado!!")   
 elif st.session_state.data_generator_mode == "Subir Datos":
     st.write("## Subir Dataset")
     st.write("#### Suba un archivo .json con el dataset.")
@@ -62,6 +73,7 @@ elif st.session_state.data_generator_mode == "Subir Datos":
         except Exception as e:
             st.error(f"An error occurred: {e}")
 st.divider()
+
 if st.session_state.dataset_dict.keys():
     st.write(" ### Navigate the data:")
     st.write(f"Classes: {st.session_state.text_classes}")
@@ -79,8 +91,8 @@ if st.session_state.dataset_dict.keys():
         else:
             st.warning("La lista está vacía. Agrega elementos antes de generar el modelo.")
 st.divider()
+
 if st.session_state.model is not None:
-    
     texto_input = st.text_input("Introduce un texto para el modelo y presiona enter:")
     result = ""
     if texto_input:
