@@ -57,9 +57,17 @@ class BertClassifier(Classifier):
             "eval_strategy": "epoch"
         }
 
-    def predict(self, str: str, return_all_scores: bool = False) -> str:
+    def predict(self, str: str, return_all_scores: bool = True) -> str:
         pipeline = TextClassificationPipeline(model=self.model, tokenizer=self.tokenizer, return_all_scores=return_all_scores)
-        return pipeline(str)[0]["label"]
+        results = pipeline(str)[0]
+        print(results)
+        if return_all_scores:
+            # results = [{"label": label, "score": score} for label, score in results.items()]
+            # find the label with the highest score
+            results = max(results, key=lambda x: x["score"])
+            return results["label"]
+        else:
+            return results["label"]
 
     def train(self, data: dict[str, list[str]], **training_config):
         self.build_dataset(data)
