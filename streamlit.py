@@ -6,7 +6,7 @@ from streamlit_tags import st_tags
 from collections import defaultdict
 import json
 
-from config import MODELS_FOLDER
+from config import MODELS_FOLDER, SYNTHETIC_DATASET_PATH, SYNTHETIC_DATASET_FOLDER
 
 
 ### SETUP ###
@@ -44,7 +44,6 @@ if st.session_state.data_generator_mode == "Generar":
     st.write("## Generador de Dataset")
     st.session_state.data_generator_model_type = st.pills(label="Elija Modelo", selection_mode="single", options=["OpenAI", "Hugging Face"], default=st.session_state.data_generator_model_type)
     if st.session_state.data_generator_model_type == "Hugging Face":
-        st.write("Ingrese repositorio de huggingface")
         st.session_state.data_generator_model_repo = st.text_area("Repositorio de Huggingface", value=st.session_state.data_generator_model_repo,height=68)
     
     if (st.session_state.data_generator_model_type) == "Hugging Face":
@@ -54,18 +53,29 @@ if st.session_state.data_generator_mode == "Generar":
 
     st.session_state.data_generator_prompt = st.text_area("Prompt", value=st.session_state.data_generator_prompt,height=400)
 
-    st.session_state.text_classes = st_tags( label= "#### Ingrese las clases (presione enter para agregar)", maxtags=10)
     st.write("#### Ingrese un contexto para el generador.")
     st.session_state.context = st.text_area(" ",height=200)
+    st.session_state.text_classes = st_tags( label= "#### Ingrese las clases (presione enter para agregar)", maxtags=10)
     st.session_state.samples_per_class = st.slider("Samples per Class", min_value=10, max_value=100, step=10, value=st.session_state.samples_per_class)
     st.session_state.number_of_words = st.slider("Number of Words", max_value=100, min_value=10, step=5, value=st.session_state.number_of_words)
+    samples_per_class = st.session_state.samples_per_class
     if st.button("Generar Dataset"):
-        generator = OpenAIDatasetGenerator("")
+        if (st.session_state.data_generator_model_type) == "Hugging Face":
+            generator = HFDatasetGenerator(st.session_state.data_generator_prompt, st.session_state.data_generator_model_repo)
+        else:
+            generator = OpenAIDatasetGenerator(st.session_state.data_generator_prompt)
+            samples_per_class = int(samples_per_class/10)
+            
         with st.spinner("Generando Dataset..."):
             st.session_state.dataset_dict = generator.generate(context= st.session_state.context,
                                         classes=st.session_state.text_classes,
-                                        samples_per_class = int(st.session_state.samples_per_class / 10),
+                                        samples_per_class = samples_per_class,
                                         number_of_words=st.session_state.number_of_words)
+
+        SYNTHETIC_DATASET_FOLDER.mkdir(parents=True, exist_ok=True)
+        with open(SYNTHETIC_DATASET_PATH, "w") as f:
+            json.dump(st.session_state.dataset_dict, f, indent=4)
+                                        
         st.success("Dataset Generado!!")   
 elif st.session_state.data_generator_mode == "Subir Datos":
     st.write("## Subir Dataset")
@@ -88,7 +98,9 @@ st.divider()
 if st.session_state.dataset_dict.keys():
     st.write(" ### Navigate the data:")
     st.write(f"Classes: {st.session_state.text_classes}")
-    st.json(st.session_state.dataset_dict, expanded=False)
+    df = pd.DataFrame(st.session_state.dataset_dict)
+    df = df.melt(var_name="labels", value_name="text")
+    st.dataframe(df)
     st.divider()
     if st.button("Generar modelo"):
         if st.session_state.dataset_dict.keys():

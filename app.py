@@ -62,16 +62,7 @@ def main():
         with open(SYNTHETIC_DATASET_PATH, "r") as f:
             synthetic_data = json.load(f)
         
-    
-    df = pd.DataFrame(synthetic_data)
-    df = df.melt(var_name="labels", value_name="text")
-    df = df[df["labels"].isin(labels)]
-    df["str_labels"] = pd.Categorical(df["labels"], categories=labels)
-    df["labels"] = df["str_labels"].cat.codes
-    dataset = Dataset.from_pandas(df)
-    dataset = dataset.class_encode_column('str_labels')
 
-    split_ds = dataset.train_test_split(test_size=0.2, stratify_by_column="str_labels")
 
     # Create a Classifier
     print(f"Using classifier: {classifier_type}")
@@ -84,7 +75,7 @@ def main():
 
     # Train the Classifier
     print("Classifier Train: Starting...")
-    classifier.train(data=synthetic_data, dataset=split_ds)
+    classifier.train(data=synthetic_data)
     print("Classifier Train: OK \n")
 
     # Save the model

@@ -63,7 +63,8 @@ def parse_to_list(input_string):
         return []
     
 class OpenAIDatasetGenerator(DatasetGenerator):
-    def __init__(self, model_repo:str) -> None:
+    def __init__(self, prompt_template:str) -> None:
+        super().__init__(prompt_template)
         self.client = OpenAI()
          
     def generate(self, context:str, classes:list[str], samples_per_class:int = 5, number_of_words:int = 50) -> dict[str,str]:
@@ -72,7 +73,7 @@ class OpenAIDatasetGenerator(DatasetGenerator):
         for specific_class in classes:
             examples= ""
             for _ in tqdm(range(samples_per_class), desc=f"Generating synthetic data for class {specific_class}"):
-                prompt = PROMPT_TEMPLATE.format(context=context, specific_class=specific_class, number_of_words=number_of_words, examples=examples)
+                prompt = self.prompt_template.format(context=context, specific_class=specific_class, number_of_words=number_of_words, examples=examples)
                 message = [{
                                 "role": "system", 
                                 "content": [
@@ -97,11 +98,7 @@ class OpenAIDatasetGenerator(DatasetGenerator):
                 )
 
                 response = completion.choices[0].message.content
-                print(message)
-                print(response)
-                import sys
                 list_response = parse_to_list(response)
-                print(list_response)
                 responses[specific_class].extend(list_response)
                 for resp in list_response:
                     

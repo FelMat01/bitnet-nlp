@@ -10,7 +10,6 @@ from transformers import (
     TextClassificationPipeline
 )
 from datasets import Dataset
-from src.classifier import Classifier
 
 import pandas as pd
 import numpy as np
@@ -45,7 +44,7 @@ class BertClassifier(Classifier):
             "output_dir": "./results",
             "overwrite_output_dir": True,
             # "per_device_train_batch_size": 1,  # Reduce if CUDA memory error persists
-            "per_device_eval_batch_size": 1,
+            # "per_device_eval_batch_size": 1,
             # "gradient_accumulation_steps": 4,  # Accumulate gradients to simulate larger batch size
             "num_train_epochs": 5,
             "learning_rate": 5e-5,
@@ -58,13 +57,12 @@ class BertClassifier(Classifier):
             "eval_strategy": "epoch"
         }
 
-    def predict(self, str: str) -> str:
-        pipeline = TextClassificationPipeline(model=self.model, tokenizer=self.tokenizer)
+    def predict(self, str: str, return_all_scores: bool = False) -> str:
+        pipeline = TextClassificationPipeline(model=self.model, tokenizer=self.tokenizer, return_all_scores=return_all_scores)
         return pipeline(str)[0]["label"]
 
-    def train(self, data, dataset: Dataset, **training_config):
-        self.train_dataset = dataset['train']
-        self.val_dataset = dataset['test']
+    def train(self, data: dict[str, list[str]], **training_config):
+        self.build_dataset(data)
         self.tokenized_train_dataset = self._tokenize_dataset(self.train_dataset)
         self.tokenized_val_dataset = self._tokenize_dataset(self.val_dataset)
 
@@ -96,17 +94,6 @@ class BertClassifier(Classifier):
     def load(self, load_path: Path) -> None:
         self.model = AutoModelForSequenceClassification.from_pretrained(load_path)
         self.tokenizer = AutoTokenizer.from_pretrained(load_path)
-
-    def _load_dataset(self, data: dict[str, list[str]]):
-        df = pd.DataFrame(data)
-        df = df.melt(var_name="labels", value_name="text")
-        df = df[df["labels"].isin(self.labels)]
-        df["str_labels"] = pd.Categorical(df["labels"], categories=self.labels)
-        df["labels"] = df["str_labels"].cat.codes
-        self.dataset = Dataset.from_pandas(df)
-        self.tokenized_dataset = self.dataset.map(
-            self._preprocess_dataset, batched=True
-        )
 
     def _tokenize_dataset(self, dataset: Dataset):
         return dataset.map(self._preprocess_dataset, batched=True)
