@@ -101,7 +101,6 @@ class OpenAIDatasetGenerator(DatasetGenerator):
                 list_response = parse_to_list(response)
                 responses[specific_class].extend(list_response)
                 for resp in list_response:
-                    
                     examples += f"{resp}\n\n"
         
         return responses

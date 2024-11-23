@@ -56,7 +56,7 @@ if st.session_state.data_generator_mode == "Generar":
     st.write("#### Ingrese un contexto para el generador.")
     st.session_state.context = st.text_area(" ",height=200)
     st.session_state.text_classes = st_tags( label= "#### Ingrese las clases (presione enter para agregar)", maxtags=10)
-    st.session_state.samples_per_class = st.slider("Samples per Class", min_value=10, max_value=350, step=10, value=st.session_state.samples_per_class)
+    st.session_state.samples_per_class = st.slider("Samples per Class", min_value=10, max_value=500, step=10, value=st.session_state.samples_per_class)
     st.session_state.number_of_words = st.slider("Number of Words", min_value=10, max_value=100, step=5, value=st.session_state.number_of_words)
     samples_per_class = st.session_state.samples_per_class
     if st.button("Generar Dataset"):
@@ -76,7 +76,7 @@ if st.session_state.data_generator_mode == "Generar":
         with open(SYNTHETIC_DATASET_PATH, "w") as f:
             json.dump(st.session_state.dataset_dict, f, indent=4)
                                         
-        st.success("Dataset Generado!!")   
+        st.success("Dataset Generado!!")
 elif st.session_state.data_generator_mode == "Subir Datos":
     st.write("## Subir Dataset")
     st.write("#### Suba un archivo .json con el dataset.")
