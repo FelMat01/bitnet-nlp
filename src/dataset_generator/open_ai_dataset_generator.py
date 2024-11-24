@@ -3,15 +3,20 @@ from collections import defaultdict
 from tqdm import tqdm
 from openai import OpenAI
 import json
+import random
 
 PROMPT_TEMPLATE = """ **Instructions:**
 - **Do not** mention the class name in the paragraph.
 - Base the paragraph on the following context.
 - **Do not** repeat or use similar content from the provided examples.
-- Use only the class, but take into account that the classifier is for all the classes.
+- Use only the class, but take into account that the classifier for all the classes.
+- Who you are influence the data generated.
 
 **Context:**
 {context}
+
+**Who you are**
+{who_you_are}
 
 **All the classes:**
 {classes}
@@ -45,6 +50,84 @@ If not examples were provided, you have to generate the seed examples, so try to
    ["paragraph1", "paragraph"]
    
 """
+
+who_you_are_options = [
+    "a common guy",
+    "a scientist",
+    "a curious teenager",
+    "an old man",
+    "a popular woman",
+    "a philosopher",
+    "a teacher",
+    "a student",
+    "a business executive",
+    "a journalist",
+    "a poet",
+    "a skeptic",
+    "an artist",
+    "a historian",
+    "a doctor",
+    "a software engineer",
+    "a detective",
+    "a lawyer",
+    "an environmental activist",
+    "a sports coach",
+    "a famous author",
+    "an explorer",
+    "a politician",
+    "a soldier",
+    "a religious leader",
+    "a motivational speaker",
+    "an adventurer",
+    "a comedian",
+    "a chef",
+    "a farmer",
+    "a yoga instructor",
+    "a psychologist",
+    "a parent",
+    "a child",
+    "an alien from another planet",
+    "a time traveler",
+    "a wizard",
+    "a stupid person",
+    "a person with short memory",
+    "an overly confident person",
+    "a pessimist",
+    "an optimist",
+    "a minimalist",
+    "a collector",
+    "a tech-savvy person",
+    "a conspiracy theorist",
+    "a gambler",
+    "a diplomat",
+    "a retired person",
+    "a homeless person",
+    "a fashion designer",
+    "a dancer",
+    "a firefighter",
+    "a nurse",
+    "a taxi driver",
+    "an introvert",
+    "an extrovert",
+    "a geek",
+    "a shy person",
+    "a fitness trainer",
+    "an undercover agent",
+    "a musician",
+    "a sailor",
+    "an inventor",
+    "a dreamer",
+    "an entrepreneur",
+    "a mathematician",
+    "a film director",
+    "a puppeteer",
+    "an animal lover",
+    "a detective novelist",
+    "a medieval knight",
+    "a vampire",
+    "a ghost",
+    "a circus performer",
+]
 
 
 def parse_to_list(input_string):
@@ -82,21 +165,27 @@ class OpenAIDatasetGenerator(DatasetGenerator):
         number_of_words: int = 50,
         samples_per_inference: int = 10,
     ):
+        global who_you_are_options
         responses = defaultdict(list)
+        random.shuffle(who_you_are_options)
+        print(samples_per_class)
 
         for specific_class in classes:
+            who_you_are_list = who_you_are_options.copy()
             examples = ""
             for _ in tqdm(
                 range(int(samples_per_class / samples_per_inference)),
                 desc=f"Generating synthetic data for class {specific_class}",
             ):
+                who_you_are = random.choice(who_you_are_list)
                 prompt = self.prompt_template.format(
                     context=context,
                     specific_class=specific_class,
                     number_of_words=number_of_words,
                     examples=examples,
                     classes=classes,
-                    samples_per_inference=samples_per_inference
+                    samples_per_inference=samples_per_inference,
+                    who_you_are=who_you_are,
                 )
                 message = [
                     {
@@ -116,6 +205,7 @@ class OpenAIDatasetGenerator(DatasetGenerator):
 
                 response = completion.choices[0].message.content
                 list_response = parse_to_list(response)
+                print(list_response)
                 responses[specific_class].extend(list_response)
                 for resp in list_response:
                     examples += f"{resp}\n\n"

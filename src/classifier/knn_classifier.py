@@ -1,17 +1,16 @@
-from pathlib import Path
 from src.classifier import Classifier
-from scipy.spatial.distance import cdist
 import numpy as np
-from collections import Counter
-import pandas as pd
-import numpy as np
-from sklearn.metrics import precision_score, recall_score, accuracy_score, f1_score
+from tqdm import tqdm
+from sklearn.neighbors import KNeighborsClassifier
+from typing import Union
 
-
-class KNNClassifier():
-    def __init__(self, hf=None):
+class KNNClassifier(Classifier):
+    def __init__(self, labels: list[str], hf=None):
         self.embeddings = None
         self.hf = hf
+        labels.sort()
+        self.labels = labels
+    
     def set_hf_endpoint(self):
         from langchain_huggingface import HuggingFaceEndpointEmbeddings
         model = "sentence-transformers/all-MiniLM-L6-v2"
@@ -22,48 +21,28 @@ class KNNClassifier():
         )
 
     def train(self, data: dict[str, list[str]]):
+        if self.hf is None:
+            self.set_hf_endpoint()
 
-            self.embeddings = []
-            self.labels = []
-            for class_name, text in data.items():
-                self.embeddings.append(self.hf.embed_documents(text))
-                self.labels.extend([class_name] * len(text))
-            self.embeddings = np.vstack(self.embeddings)
+        self.embeddings = []
+        self.embeddings_labels = []
+        for class_name, text in tqdm(data.items(), desc="Embedding documents"):
+            self.embeddings.append(self.hf.embed_documents(text))
+            self.embeddings_labels.extend([class_name] * len(text))
+        self.embeddings = np.vstack(self.embeddings)
 
-            return
+        self.knn = KNeighborsClassifier(n_neighbors=5, metric='cosine')
+        self.knn.fit(self.embeddings, self.embeddings_labels)
        
-    def predict(self, text):
-        new_sentence_embedding = self.hf.embed_documents([text])[0]
-        distances = cdist([new_sentence_embedding], self.embeddings, metric='cosine')[0]
+    def predict(self, texts: Union[str, list[str]], return_index: bool = False):
+        if self.hf is None:
+            self.set_hf_endpoint()
 
-
-        nearest_indices = np.argsort(distances)[:5]
-        nearest_labels = [self.labels[idx] for idx in nearest_indices]
-
-
-        most_common_label = Counter(nearest_labels).most_common(1)[0][0]
-
-        return most_common_label
-
-    from sklearn.metrics import precision_score, recall_score, accuracy_score, f1_score
-
-    def evaluate_classifier(self, df):
-        df['predicted_class'] = df['text'].apply(self.predict)
-
-        y_true = df['class']
-        y_pred = df['predicted_class']
-
-        accuracy = accuracy_score(y_true, y_pred)
-        precision = precision_score(y_true, y_pred, average='weighted', zero_division=0)
-        recall = recall_score(y_true, y_pred, average='weighted', zero_division=0)
-        f1 = f1_score(y_true, y_pred, average='weighted', zero_division=0)
-
-        print(f"Accuracy: {accuracy:.4f}")
-        print(f"Precision: {precision:.4f}")
-        print(f"Recall: {recall:.4f}")
-        print(f"F1 Score: {f1:.4f}")
-
-        return accuracy, precision, recall, f1
-
-
-
+        if isinstance(texts, str):
+            texts = [texts]
+        embeddings = self.hf.embed_documents(texts)
+        predictions = self.knn.predict(embeddings)
+        prediction = str(predictions[0])
+        if return_index:
+            return self.labels.index(prediction)
+        return prediction

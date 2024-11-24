@@ -22,11 +22,11 @@ def compute_metrics(eval_pred):
     recall = recall_score(labels, predictions, average="macro")
     accuracy = accuracy_score(labels, predictions)
     return {"precision": precision, "recall": recall, "accuracy": accuracy}
-
 class BertClassifier(Classifier):
     def __init__(
         self, labels: list[str], model_name: str = "bert-base-uncased"
     ) -> None:
+        labels.sort()
         self.labels = labels
         id2label = {i: label for i, label in enumerate(labels)}
         label2id = {label: i for i, label in enumerate(labels)}
@@ -46,7 +46,7 @@ class BertClassifier(Classifier):
             # "per_device_train_batch_size": 1,  # Reduce if CUDA memory error persists
             # "per_device_eval_batch_size": 1,
             # "gradient_accumulation_steps": 4,  # Accumulate gradients to simulate larger batch size
-            "num_train_epochs": 5,
+            "num_train_epochs": 3,
             "learning_rate": 5e-5,
             "lr_scheduler_type": "cosine",
             # "fp16": True,  # Use mixed precision training to save memory

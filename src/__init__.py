@@ -1,2 +1,2 @@
-from src.classifier import BertClassifier, NaiveBayesClassifier
+from src.classifier import BertClassifier, NaiveBayesClassifier, KNNClassifier
 from src.dataset_generator import HFDatasetGenerator,  OpenAIDatasetGenerator, HF_PROMPT_TEMPLATE, OPENAI_PROMPT_TEMPLATE

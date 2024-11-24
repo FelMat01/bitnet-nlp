@@ -64,7 +64,6 @@ if st.session_state.data_generator_mode == "Generar":
             generator = HFDatasetGenerator(st.session_state.data_generator_prompt, st.session_state.data_generator_model_repo)
         else:
             generator = OpenAIDatasetGenerator(st.session_state.data_generator_prompt)
-            samples_per_class = int(samples_per_class/10)
             
         with st.spinner("Generando Dataset..."):
             st.session_state.dataset_dict = generator.generate(context= st.session_state.context,
