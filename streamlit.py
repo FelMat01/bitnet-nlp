@@ -101,9 +101,9 @@ if st.session_state.dataset_dict.keys():
     df = df.melt(var_name="labels", value_name="text")
     st.dataframe(df)
     st.divider()
+    model_name = st.pills(label="Elija una opcion", selection_mode="single", options=["NaiveBayes", "Bert", "KNN"])
     if st.button("Generar modelo"):
         if st.session_state.dataset_dict.keys():
-            model_name = st.pills(label="Elija una opcion", selection_mode="single", options=["NaiveBayes", "Bert", "KNN"], default=st.session_state.data_generator_mode)
             
             with st.spinner("Training Model..."):
                 classifier = MODEL_CLASS_DICT[model_name](labels=st.session_state.text_classes)

@@ -4,7 +4,7 @@ from tqdm import tqdm
 from openai import OpenAI
 import json
 import random
-
+import os
 PROMPT_TEMPLATE = """ **Instructions:**
 - **Do not** mention the class name in the paragraph.
 - Base the paragraph on the following context.
@@ -155,7 +155,7 @@ def parse_to_list(input_string):
 class OpenAIDatasetGenerator(DatasetGenerator):
     def __init__(self, prompt_template: str) -> None:
         super().__init__(prompt_template)
-        self.client = OpenAI()
+        self.client = OpenAI(api_key = None)
 
     def generate(
         self,
