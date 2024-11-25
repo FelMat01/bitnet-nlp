@@ -20,7 +20,7 @@ class KNNClassifier(Classifier):
             huggingfacehub_api_token="",
         )
 
-    def train(self, data: dict[str, list[str]]):
+    def train(self, data: dict[str, list[str]], dataset=None):
         if self.hf is None:
             self.set_hf_endpoint()
 
@@ -46,3 +46,5 @@ class KNNClassifier(Classifier):
         if return_index:
             return self.labels.index(prediction)
         return prediction
+    def export(self, dir):
+        print("KNN is non-exportable since it has no weights")

@@ -1,6 +1,6 @@
 import streamlit as st
 import json
-from src import NaiveBayesClassifier, BertClassifier, HFDatasetGenerator, OpenAIDatasetGenerator, HF_PROMPT_TEMPLATE, OPENAI_PROMPT_TEMPLATE
+from src import NaiveBayesClassifier, BertClassifier, HFDatasetGenerator, OpenAIDatasetGenerator, HF_PROMPT_TEMPLATE, OPENAI_PROMPT_TEMPLATE, KNNClassifier
 import pandas as pd     
 from streamlit_tags import st_tags
 from collections import defaultdict
@@ -8,7 +8,7 @@ import json
 
 from config import MODELS_FOLDER, SYNTHETIC_DATASET_PATH, SYNTHETIC_DATASET_FOLDER
 
-
+MODEL_CLASS_DICT= {"NaiveBayes":NaiveBayesClassifier, "Bert":BertClassifier, "KNN":KNNClassifier}
 ### SETUP ###
 #st.set_page_config(layout="wide")
 if "data_generator_mode" not in st.session_state:
@@ -103,9 +103,10 @@ if st.session_state.dataset_dict.keys():
     st.divider()
     if st.button("Generar modelo"):
         if st.session_state.dataset_dict.keys():
+            model_name = st.pills(label="Elija una opcion", selection_mode="single", options=["NaiveBayes", "Bert", "KNN"], default=st.session_state.data_generator_mode)
             
             with st.spinner("Training Model..."):
-                classifier = NaiveBayesClassifier(labels=st.session_state.text_classes)
+                classifier = MODEL_CLASS_DICT[model_name](labels=st.session_state.text_classes)
                 classifier.train(data=st.session_state.dataset_dict, dataset=None)
                 classifier.export(dir=MODELS_FOLDER)
                 st.session_state.model = classifier

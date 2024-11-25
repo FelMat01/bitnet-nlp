@@ -1,6 +1,6 @@
 import json
 import pandas as pd
-from src import NaiveBayesClassifier, BertClassifier, HFDatasetGenerator, OpenAIDatasetGenerator
+from src import NaiveBayesClassifier, BertClassifier, HFDatasetGenerator, OpenAIDatasetGenerator, KNNClassifier
 from datasets import Dataset
 from config import SYNTHETIC_DATASET_GENERATE, SYNTHETIC_DATASET_PATH, SYNTHETIC_DATASET_FOLDER, MODELS_FOLDER
 
@@ -21,7 +21,7 @@ labels = ["ML", "Testing", "Devops"]
 example = "Lets work with llms, with data analysis, and with predictive models"
 
 dataset_generator_type = "HF"#"OpenAI"  "HF"
-
+classifier_class = {"NB" : NaiveBayesClassifier ,"bert" : BertClassifier, "knnEmbeddings" : KNNClassifier }
 def main():
     print("Starting Auto Classifier!")
     
@@ -66,12 +66,9 @@ def main():
 
     # Create a Classifier
     print(f"Using classifier: {classifier_type}")
-    if classifier_type == "NB":
-        classifier = NaiveBayesClassifier(labels=labels)
-    elif classifier_type == "bert":
-        classifier = BertClassifier(labels=labels)
-    else:
-        raise ValueError(f"Unknown classifier: {classifier_type}")
+
+    classifier = classifier_class[classifier_type](labels=labels)
+
 
     # Train the Classifier
     print("Classifier Train: Starting...")
