@@ -1,10 +1,10 @@
 import streamlit as st
 import json
-from src import NaiveBayesClassifier, BertClassifier, HFDatasetGenerator, OpenAIDatasetGenerator, HF_PROMPT_TEMPLATE, OPENAI_PROMPT_TEMPLATE, KNNClassifier
+from src import NaiveBayesClassifier, BertClassifier, HFDatasetGenerator, OpenAIDatasetGenerator, plot_pca_with_streamlit, HF_PROMPT_TEMPLATE, OPENAI_PROMPT_TEMPLATE, OPENAI_SYSTEM_PROMPT, KNNClassifier
 import pandas as pd     
 from streamlit_tags import st_tags
 from collections import defaultdict
-import json
+
 
 from config import MODELS_FOLDER, SYNTHETIC_DATASET_PATH, SYNTHETIC_DATASET_FOLDER
 
@@ -29,7 +29,10 @@ if "dataset_dict" not in st.session_state:
     st.session_state["dataset_dict"] = defaultdict(list)
 if "model" not in st.session_state:
     st.session_state["model"] = None
-
+if "data_generator_prompt" not in st.session_state:
+    st.session_state["data_generator_prompt"] = OPENAI_PROMPT_TEMPLATE
+if "openai_system_prompt" not in st.session_state:
+    st.session_state["openai_system_prompt"] = OPENAI_SYSTEM_PROMPT
 ### RENDER START ###
 st.image("misc/banner.png")
 
@@ -51,7 +54,10 @@ if st.session_state.data_generator_mode == "Generar":
     else:
         st.session_state.data_generator_prompt = OPENAI_PROMPT_TEMPLATE
 
-    st.session_state.data_generator_prompt = st.text_area("Prompt", value=st.session_state.data_generator_prompt,height=400)
+    with st.expander("Prompt Principal"):
+        if (st.session_state.data_generator_model_type) == "OpenAI":
+            st.session_state.openai_system_prompt = st.text_area("System Prompt", value=st.session_state.openai_system_prompt,height=200)
+        st.session_state.data_generator_prompt = st.text_area("Prompt", value=st.session_state.data_generator_prompt,height=400)
 
     st.write("#### Ingrese un contexto para el generador.")
     st.session_state.context = st.text_area(" ",height=200)
@@ -63,7 +69,7 @@ if st.session_state.data_generator_mode == "Generar":
         if (st.session_state.data_generator_model_type) == "Hugging Face":
             generator = HFDatasetGenerator(st.session_state.data_generator_prompt, st.session_state.data_generator_model_repo)
         else:
-            generator = OpenAIDatasetGenerator(st.session_state.data_generator_prompt)
+            generator = OpenAIDatasetGenerator(st.session_state.data_generator_prompt, st.session_state.openai_system_prompt)
             
         with st.spinner("Generando Dataset..."):
             st.session_state.dataset_dict = generator.generate(context= st.session_state.context,
@@ -116,10 +122,19 @@ if st.session_state.dataset_dict.keys():
 st.divider()
 
 if st.session_state.model is not None:
+    if isinstance(st.session_state.model, KNNClassifier):
+        with st.expander("Mapa de Features"):
+            plot_pca_with_streamlit(st.session_state.model.embeddings_labels, st.session_state.model.embeddings)
     texto_input = st.text_input("Introduce un texto para el modelo y presiona enter:")
     result = ""
     if texto_input:
         result = st.session_state.model.predict(texto_input)
     if result:
         st.write(f"## Result: {result}")
+        
+        if isinstance(st.session_state.model, KNNClassifier):
+            with st.expander("Mapa de Features Con Resultado"):
+                print(len(st.session_state.model.embeddings_labels + ["result"]))
+                print(len(list(st.session_state.model.embeddings) +  [st.session_state.model.hf.embed_documents([texto_input])[0]]))
+                plot_pca_with_streamlit(st.session_state.model.embeddings_labels + ["result"], list(st.session_state.model.embeddings) +  [st.session_state.model.hf.embed_documents([texto_input])[0]])
 

@@ -5,6 +5,9 @@ from openai import OpenAI
 import json
 import random
 import os
+
+SYSTEM_PROMPT = " You are an expert in creating examples for text classification datasets. Your task is to generate highly diverse and unique examples that cover various patterns and nuances to improve the dataset's quality. Ensure that the examples are distinct from each other and encompass a wide range of scenarios relevant to the classification task."
+
 PROMPT_TEMPLATE = """ **Instructions:**
 - **Do not** mention the class name in the paragraph.
 - Base the paragraph on the following context.
@@ -153,9 +156,10 @@ def parse_to_list(input_string):
 
 
 class OpenAIDatasetGenerator(DatasetGenerator):
-    def __init__(self, prompt_template: str) -> None:
+    def __init__(self, prompt_template: str, system_prompt : str) -> None:
         super().__init__(prompt_template)
         self.client = OpenAI(api_key = None)
+        self.system_prompt = system_prompt
 
     def generate(
         self,
@@ -163,7 +167,7 @@ class OpenAIDatasetGenerator(DatasetGenerator):
         classes: list[str],
         samples_per_class: int = 5,
         number_of_words: int = 50,
-        samples_per_inference: int = 10,
+        samples_per_inference: int = 10
     ):
         global who_you_are_options
         responses = defaultdict(list)
@@ -193,7 +197,7 @@ class OpenAIDatasetGenerator(DatasetGenerator):
                         "content": [
                             {
                                 "type": "text",
-                                "text": " You are an expert in creating examples for text classification datasets. Your task is to generate highly diverse and unique examples that cover various patterns and nuances to improve the dataset's quality. Ensure that the examples are distinct from each other and encompass a wide range of scenarios relevant to the classification task.",
+                                "text": self.system_prompt,
                             }
                         ],
                     },

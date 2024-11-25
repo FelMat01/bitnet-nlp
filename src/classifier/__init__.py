@@ -1,4 +1,4 @@
 from src.classifier.classifier import Classifier
 from src.classifier.naive_bayes_classifier import NaiveBayesClassifier
 from src.classifier.bert_classifier import BertClassifier
-from src.classifier.knn_classifier import KNNClassifier
+from src.classifier.knn_classifier import KNNClassifier, plot_pca_with_streamlit
